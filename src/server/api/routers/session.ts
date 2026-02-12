@@ -9,6 +9,7 @@ import { admin } from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
 import { COOKIE_CONST, PATH_CONST, STATUS_CONST } from "@/utils/consts";
 import { env } from "@/env";
+import { encodeIDtoJWT } from "@/utils/serializer";
 
 export const sessionRouter = createTRPCRouter({
   login: publicProcedure
@@ -54,11 +55,7 @@ export const sessionRouter = createTRPCRouter({
         });
       }
 
-      const jwt = await new jose.SignJWT({ id: user.id })
-        .setProtectedHeader({ alg: "HS512" })
-        .setIssuedAt()
-        .setExpirationTime("1h")
-        .sign(new TextEncoder().encode(env.JWT_SECRET));
+      const jwt = await encodeIDtoJWT(user.id);
 
       ctx.cookieStore.set(COOKIE_CONST.AUTHORIZED, jwt, {
         httpOnly: true,
