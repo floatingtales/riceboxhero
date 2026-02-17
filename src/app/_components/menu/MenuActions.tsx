@@ -58,6 +58,7 @@ export function MenuActions({
 	const toggleActiveMutation = api.menu.toggleActive.useMutation({
 		onSuccess: () => {
 			utils.menu.getAll.invalidate();
+			utils.menu.getActive.invalidate();
 			showNotification({
 				message: "Menu item status toggled successfully",
 				color: "green",

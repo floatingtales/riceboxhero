@@ -18,7 +18,7 @@ import {
 	IconPackage,
 	IconSettings,
 	IconToolsKitchen3,
-	IconUser,
+	IconUsers,
 } from "@tabler/icons-react";
 import { usePathname, useRouter } from "next/navigation";
 import { logout } from "@/app/_actions/session";
@@ -37,6 +37,11 @@ export default function Navbar() {
 		}
 	};
 
+	if (dayOverviewQuery.isError) {
+		window.location.reload();
+		return;
+	}
+
 	return (
 		<Stack
 			justify="space-between"
@@ -46,7 +51,7 @@ export default function Navbar() {
 		>
 			<Group align="center" justify="space-between" mb="md">
 				<Group>
-					<IconBowlSpoon size={40} />
+					<IconBowlSpoon color="var(--mantine-color-orange-7)" size={40} />
 					<Title c="orange.7" order={3}>
 						Rice Box Hero
 					</Title>
@@ -97,19 +102,36 @@ export default function Navbar() {
 				value={pathname as string}
 			>
 				<Tabs.List>
-					<Tabs.Tab leftSection={<IconChartBar />} value={PATH_CONST.DASHBOARD}>
+					<Tabs.Tab
+						leftSection={<IconChartBar color="var(--mantine-color-orange-5)" />}
+						value={PATH_CONST.DASHBOARD}
+					>
 						Dashboard
 					</Tabs.Tab>
-					<Tabs.Tab leftSection={<IconPackage />} value={PATH_CONST.ORDERS}>
+					<Tabs.Tab
+						leftSection={<IconPackage color="var(--mantine-color-orange-5)" />}
+						value={PATH_CONST.ORDERS}
+					>
 						Orders
 					</Tabs.Tab>
-					<Tabs.Tab leftSection={<IconToolsKitchen3 />} value={PATH_CONST.MENU}>
+					<Tabs.Tab
+						leftSection={
+							<IconToolsKitchen3 color="var(--mantine-color-orange-5)" />
+						}
+						value={PATH_CONST.MENU}
+					>
 						Menu
 					</Tabs.Tab>
-					<Tabs.Tab leftSection={<IconUser />} value={PATH_CONST.CUSTOMERS}>
+					<Tabs.Tab
+						leftSection={<IconUsers color="var(--mantine-color-orange-5)" />}
+						value={PATH_CONST.CUSTOMERS}
+					>
 						Customers
 					</Tabs.Tab>
-					<Tabs.Tab leftSection={<IconSettings />} value={PATH_CONST.SETTINGS}>
+					<Tabs.Tab
+						leftSection={<IconSettings color="var(--mantine-color-orange-5)" />}
+						value={PATH_CONST.SETTINGS}
+					>
 						Admin Settings
 					</Tabs.Tab>
 				</Tabs.List>

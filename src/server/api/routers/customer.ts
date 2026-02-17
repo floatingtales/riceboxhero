@@ -26,6 +26,26 @@ export const customerRouter = createTRPCRouter({
 			});
 		}
 	}),
+	getActive: authedProcedure.query(async ({ ctx }) => {
+		try {
+			const customers = await ctx.db.query.customer.findMany({
+				columns: {
+					id: true,
+					name: true,
+					phone: true,
+					address: true,
+				},
+				where: eq(customer.isActive, true),
+				orderBy: (customer, { desc }) => [desc(customer.name)],
+			});
+			return customers;
+		} catch (_e) {
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Failed to fetch customers",
+			});
+		}
+	}),
 	add: authedProcedure
 		.input(
 			z.object({ name: z.string(), phone: z.string(), address: z.string() }),

@@ -49,6 +49,7 @@ export function CustomerActions({
 	const toggleActiveMutation = api.customer.toggleActive.useMutation({
 		onSuccess: () => {
 			utils.customer.getAll.invalidate();
+			utils.customer.getActive.invalidate();
 			showNotification({
 				message: "Customer status toggled successfully",
 				color: "green",

@@ -26,6 +26,26 @@ export const menuRouter = createTRPCRouter({
 			});
 		}
 	}),
+	getActive: authedProcedure.query(async ({ ctx }) => {
+		try {
+			const menus = await ctx.db.query.menu.findMany({
+				columns: {
+					id: true,
+					name: true,
+					type: true,
+					standardPrice: true,
+				},
+				where: eq(menu.isActive, true),
+				orderBy: (menu, { desc }) => [desc(menu.name)],
+			});
+			return menus;
+		} catch (_e) {
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Failed to fetch menus",
+			});
+		}
+	}),
 	add: authedProcedure
 		.input(
 			z.object({

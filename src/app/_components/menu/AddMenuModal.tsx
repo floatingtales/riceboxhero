@@ -30,6 +30,7 @@ export default function AddMenuModal({
 	const addMutation = api.menu.add.useMutation({
 		onSuccess: () => {
 			utils.menu.getAll.invalidate();
+			utils.menu.getActive.invalidate();
 			showNotification({
 				message: "Menu item added successfully",
 				color: "green",

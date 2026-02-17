@@ -16,6 +16,7 @@ export default function AddCustomerModal({
 	const addMutation = api.customer.add.useMutation({
 		onSuccess: () => {
 			utils.customer.getAll.invalidate();
+			utils.customer.getActive.invalidate();
 			showNotification({
 				message: "Customer added successfully",
 				color: "green",

@@ -1,8 +1,8 @@
+import { relations } from "drizzle-orm";
 import { index } from "drizzle-orm/pg-core";
 import { createTable } from "./_helper";
-import { order } from "./order";
 import { menu } from "./menu";
-import { relations } from "drizzle-orm";
+import { order } from "./order";
 
 export const orderItem = createTable(
 	"order_item",
@@ -16,7 +16,7 @@ export const orderItem = createTable(
 			.uuid()
 			.notNull()
 			.references(() => menu.id),
-		amout: d.numeric({ precision: 5, scale: 2, mode: "number" }),
+		amount: d.numeric({ precision: 5, scale: 2, mode: "number" }),
 		grossPrice: d.numeric({ precision: 15, scale: 2, mode: "number" }),
 		discount: d.numeric({ precision: 15, scale: 2, mode: "number" }),
 		discountRate: d.numeric({ precision: 5, scale: 2, mode: "number" }),
