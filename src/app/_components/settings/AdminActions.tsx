@@ -5,8 +5,7 @@ import {
 	Button,
 	Group,
 	Modal,
-	NumberInput,
-	Select,
+	PasswordInput,
 	Stack,
 	TextInput,
 	Tooltip,
@@ -16,33 +15,22 @@ import { useDisclosure } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
 import { IconBan, IconCheck, IconEdit } from "@tabler/icons-react";
 import { api } from "@/trpc/react";
-import { MENU_TYPE_CONST } from "@/utils/consts";
-import { formatSnakeCaseToStandard } from "@/utils/helpers/formatSnakeCaseToStandard";
 
-export function MenuActions({
+export function AdminActions({
 	id,
 	isActive,
-	name,
-	type,
-	standardPrice,
+	username,
 }: {
 	id: string;
 	isActive: boolean;
-	name: string;
-	type: (typeof MENU_TYPE_CONST)[number];
-	standardPrice: number;
+	username: string;
 }) {
-	const SELECT_DATA = MENU_TYPE_CONST.map((type) => ({
-		label: formatSnakeCaseToStandard(type),
-		value: type,
-	}));
-
 	const utils = api.useUtils();
-	const editMutation = api.menu.edit.useMutation({
+	const editMutation = api.admin.edit.useMutation({
 		onSuccess: () => {
-			utils.menu.getAll.invalidate();
+			utils.admin.getAll.invalidate();
 			showNotification({
-				message: "Menu item updated successfully",
+				message: "Admin updated successfully",
 				color: "green",
 				title: "Success",
 			});
@@ -55,11 +43,11 @@ export function MenuActions({
 			});
 		},
 	});
-	const toggleActiveMutation = api.menu.toggleActive.useMutation({
+	const toggleActiveMutation = api.admin.toggleActive.useMutation({
 		onSuccess: () => {
-			utils.menu.getAll.invalidate();
+			utils.admin.getAll.invalidate();
 			showNotification({
-				message: "Menu item status toggled successfully",
+				message: "Admin status toggled successfully",
 				color: "green",
 				title: "Success",
 			});
@@ -78,16 +66,14 @@ export function MenuActions({
 	const form = useForm({
 		mode: "uncontrolled",
 		initialValues: {
-			name,
-			type,
-			standardPrice,
+			username,
+			password: "",
 		},
 		validate: {
-			name: (value) =>
-				value.length < 3 ? "Name must be at least 3 characters" : null,
-			type: (value) => (value ? null : "Type is required"),
-			standardPrice: (value) =>
-				value > 0 ? null : "Price must be greater than 0",
+			username: (value) =>
+				value.length < 3 ? "Username must be at least 3 characters" : null,
+			password: (value) =>
+				value.length < 6 ? "Password must be at least 6 characters" : null,
 		},
 		validateInputOnBlur: true,
 	});
@@ -98,19 +84,16 @@ export function MenuActions({
 	};
 
 	const handleSubmit = ({
-		name,
-		type,
-		standardPrice,
+		username,
+		password,
 	}: {
-		name: string;
-		type: (typeof MENU_TYPE_CONST)[number];
-		standardPrice: number;
+		username: string;
+		password: string;
 	}) => {
 		editMutation.mutate({
 			id,
-			name,
-			type,
-			standardPrice,
+			username,
+			password,
 		});
 		handleClose();
 	};
@@ -134,32 +117,20 @@ export function MenuActions({
 					</ActionIcon>
 				</Tooltip>
 			</Group>
-			<Modal onClose={handleClose} opened={opened} title="Edit Menu Item">
+			<Modal onClose={handleClose} opened={opened} title="Edit Admin">
 				<form onSubmit={form.onSubmit(handleSubmit)}>
 					<Stack>
 						<TextInput
-							key={form.key("name")}
-							label="Name"
+							key={form.key("username")}
+							label="Username"
 							withAsterisk
-							{...form.getInputProps("name")}
+							{...form.getInputProps("username")}
 						/>
-						<Select
-							data={SELECT_DATA}
-							key={form.key("type")}
-							label="Type"
+						<PasswordInput
+							key={form.key("password")}
+							label="New Password"
 							withAsterisk
-							{...form.getInputProps("type")}
-						/>
-						<NumberInput
-							decimalScale={2}
-							hideControls
-							key={form.key("standardPrice")}
-							label="Price"
-							min={0}
-							prefix="Rp "
-							thousandSeparator=","
-							withAsterisk
-							{...form.getInputProps("standardPrice")}
+							{...form.getInputProps("password")}
 						/>
 						<Button loading={editMutation.isPending} type="submit">
 							Save

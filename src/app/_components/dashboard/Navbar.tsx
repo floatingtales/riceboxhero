@@ -110,7 +110,7 @@ export default function Navbar() {
 						Customers
 					</Tabs.Tab>
 					<Tabs.Tab leftSection={<IconSettings />} value={PATH_CONST.SETTINGS}>
-						Settings
+						Admin Settings
 					</Tabs.Tab>
 				</Tabs.List>
 			</Tabs>
