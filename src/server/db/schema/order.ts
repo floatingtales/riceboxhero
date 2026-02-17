@@ -21,9 +21,7 @@ export const order = createTable(
 		orderNumber: d.text().notNull(),
 		orderStatus: orderStatusEnum().notNull(),
 		orderedAt: d.timestamp({ withTimezone: true }).notNull().defaultNow(),
-		grossPrice: d
-			.numeric({ precision: 15, scale: 2, mode: "number" })
-			.notNull(),
+		subtotal: d.numeric({ precision: 15, scale: 2, mode: "number" }).notNull(),
 		discount: d
 			.numeric({ precision: 15, scale: 2, mode: "number" })
 			.notNull()

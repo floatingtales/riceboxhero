@@ -70,7 +70,10 @@ export default function MenuPage() {
 			header: "Price",
 			key: "standardPrice",
 			sortable: true,
-			render: (row) => `Rp. ${row.standardPrice.toLocaleString("en-US")}`,
+			render: (row) =>
+				`Rp. ${row.standardPrice.toLocaleString("en-US", {
+					maximumFractionDigits: 2,
+				})}`,
 		},
 		{
 			header: "Status",
