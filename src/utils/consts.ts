@@ -1,13 +1,20 @@
 export const PATH_CONST = {
-  HOME: "/",
-  DASHBOARD: "/dashboard",
+	HOME: "/",
+	DASHBOARD: "/dashboard",
+	ORDERS: "/dashboard/orders",
+	CUSTOMERS: "/dashboard/customers",
+	MENU: "/dashboard/menu",
+	SETTINGS: "/dashboard/settings",
 } as const;
 
 export const STATUS_CONST = {
-  REDIRECT: "REDIRECT",
-  DATA_FOUND: "DATA_FOUND",
+	REDIRECT: "REDIRECT",
+	DATA_FOUND: "DATA_FOUND",
+	ALERT: "ALERT",
 } as const;
 
 export const COOKIE_CONST = {
-  AUTHORIZED: "authorized",
+	AUTHORIZED: "authorized",
 } as const;
+
+export const MENU_TYPE_CONST = ["rice_box", "meat_only"] as const;

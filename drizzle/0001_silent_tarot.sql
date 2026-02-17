@@ -1,0 +1,2 @@
+CREATE TYPE "public"."order_status_enum" AS ENUM('pending', 'paid', 'served/delivered', 'voided');--> statement-breakpoint
+ALTER TABLE "riceboxhero_order" ADD COLUMN "orderStatus" "order_status_enum" NOT NULL;

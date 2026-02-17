@@ -7,16 +7,15 @@
  * need to use are documented accordingly near the end.
  */
 import { initTRPC, TRPCError } from "@trpc/server";
+import * as jose from "jose";
+import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-
-import { db } from "@/server/db";
-import { cookies } from "next/headers";
-import * as jose from "jose";
-import type { NextRequest } from "next/server";
-import { cache } from "../redis/cache";
-import { COOKIE_CONST } from "@/utils/consts";
 import { env } from "@/env";
+import { db } from "@/server/db";
+import { COOKIE_CONST } from "@/utils/consts";
+import { cache } from "../redis/cache";
 
 /**
  * 1. CONTEXT
@@ -31,21 +30,20 @@ import { env } from "@/env";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: {
-  headers: Headers;
-  req?: NextRequest;
+	headers: Headers;
+	req?: NextRequest;
+	cookieStore?: Awaited<ReturnType<typeof cookies>>;
 }) => {
-  const { headers } = opts;
-  const cookieStore = await cookies();
-  const ip =
-    headers.get("x-forwarded-for") || headers.get("x-real-ip") || "unknown";
+	const { headers } = opts;
+	const ip =
+		headers.get("x-forwarded-for") || headers.get("x-real-ip") || "unknown";
 
-  return {
-    db,
-    cache,
-    ip,
-    cookieStore,
-    ...opts,
-  };
+	return {
+		db,
+		cache,
+		ip,
+		...opts,
+	};
 };
 
 /**
@@ -56,17 +54,17 @@ export const createTRPCContext = async (opts: {
  * errors on the backend.
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
-      },
-    };
-  },
+	transformer: superjson,
+	errorFormatter({ shape, error }) {
+		return {
+			...shape,
+			data: {
+				...shape.data,
+				zodError:
+					error.cause instanceof ZodError ? error.cause.flatten() : null,
+			},
+		};
+	},
 });
 
 /**
@@ -97,37 +95,28 @@ export const createTRPCRouter = t.router;
  * network latency that would occur in production but not in local development.
  */
 const timingMiddleware = t.middleware(async ({ next, path }) => {
-  const start = Date.now();
+	const start = Date.now();
 
-  if (t._config.isDev) {
-    // artificial delay in dev
-    const waitMs = Math.floor(Math.random() * 400) + 100;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
+	if (t._config.isDev) {
+		// artificial delay in dev
+		const waitMs = Math.floor(Math.random() * 400) + 100;
+		await new Promise((resolve) => setTimeout(resolve, waitMs));
+	}
 
-  const result = await next();
+	const result = await next();
 
-  const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+	const end = Date.now();
+	console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
 
-  return result;
+	return result;
 });
 
-export const authedMiddleware = t.middleware(async ({ ctx, next }) => {
-  const token = ctx.cookieStore.get(COOKIE_CONST.AUTHORIZED);
+const clientOnlyMiddleware = t.middleware(async ({ ctx, next }) => {
+	if (!ctx.req) {
+		throw new TRPCError({ code: "UNAUTHORIZED", message: "No Request" });
+	}
 
-  if (!token) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "No Token" });
-  }
-
-  const { payload } = await jose.jwtVerify(
-    token.value,
-    new TextEncoder().encode(env.JWT_SECRET),
-  );
-
-  const userId = payload.id as string;
-
-  return next({ ctx: { ...ctx, userId } });
+	return next({ ctx: { ...ctx, req: ctx.req } });
 });
 
 /**
@@ -139,4 +128,24 @@ export const authedMiddleware = t.middleware(async ({ ctx, next }) => {
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
 
-export const authedProcedure = publicProcedure.use(authedMiddleware);
+export const clientOnlyProcedure = publicProcedure.use(clientOnlyMiddleware);
+
+export const authedProcedure = clientOnlyProcedure.use(
+	async ({ ctx, next }) => {
+		const cookieStore = await cookies();
+		const token = cookieStore.get(COOKIE_CONST.AUTHORIZED);
+
+		if (!token) {
+			throw new TRPCError({ code: "UNAUTHORIZED", message: "No Token" });
+		}
+
+		const { payload } = await jose.jwtVerify(
+			token.value,
+			new TextEncoder().encode(env.JWT_SECRET),
+		);
+
+		const userId = payload.id as string;
+
+		return next({ ctx: { ...ctx, userId } });
+	},
+);

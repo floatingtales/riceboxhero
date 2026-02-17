@@ -1,54 +1,107 @@
-import Link from "next/link";
+"use client";
 
-import { LatestPost } from "@/app/_components/post";
-import { api, HydrateClient } from "@/trpc/server";
-import styles from "./index.module.css";
+import {
+	Button,
+	Card,
+	Group,
+	Loader,
+	PasswordInput,
+	Stack,
+	TextInput,
+	Title,
+} from "@mantine/core";
+import { isNotEmpty, useForm } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
+import { IconBowlSpoon } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { PATH_CONST, STATUS_CONST } from "@/utils/consts";
+import { checkSession, login } from "./_actions/session";
 
-export default async function Home() {
-	const hello = await api.post.hello({ text: "from tRPC" });
+export default function Home() {
+	const [loading, setLoading] = useState(false);
 
-	void api.post.getLatest.prefetch();
+	const router = useRouter();
+
+	const form = useForm({
+		mode: "uncontrolled",
+		initialValues: {
+			username: "",
+			password: "",
+		},
+		validate: {
+			username: isNotEmpty("username must not be empty"),
+			password: isNotEmpty("password must not be empty"),
+		},
+		validateInputOnBlur: true,
+	});
+
+	const handleLogin = async ({
+		username,
+		password,
+	}: {
+		username: string;
+		password: string;
+	}) => {
+		setLoading(true);
+		const ipResponse = await fetch("https://api.ipify.org?format=json");
+		const { ip } = await ipResponse.json();
+		const res = await login({ ip, username, password });
+		if (res.status === STATUS_CONST.REDIRECT) {
+			router.push(res.href);
+		}
+		if (res.status === STATUS_CONST.ALERT) {
+			notifications.show({
+				message: res.message,
+			});
+		}
+		setLoading(false);
+	};
+
+	useEffect(() => {
+		setLoading(true);
+		checkSession().then((res) => {
+			if (res) {
+				router.push(PATH_CONST.DASHBOARD);
+			}
+		});
+		setLoading(false);
+	}, [router]);
+
+	if (loading)
+		return (
+			<Stack align="center" h="100svh" justify="center" w="100svw">
+				<Loader size="lg" type="dots" />
+			</Stack>
+		);
 
 	return (
-		<HydrateClient>
-			<main className={styles.main}>
-				<div className={styles.container}>
-					<h1 className={styles.title}>
-						Create <span className={styles.pinkSpan}>T3</span> App
-					</h1>
-					<div className={styles.cardRow}>
-						<Link
-							className={styles.card}
-							href="https://create.t3.gg/en/usage/first-steps"
-							target="_blank"
-						>
-							<h3 className={styles.cardTitle}>First Steps →</h3>
-							<div className={styles.cardText}>
-								Just the basics - Everything you need to know to set up your
-								database and authentication.
-							</div>
-						</Link>
-						<Link
-							className={styles.card}
-							href="https://create.t3.gg/en/introduction"
-							target="_blank"
-						>
-							<h3 className={styles.cardTitle}>Documentation →</h3>
-							<div className={styles.cardText}>
-								Learn more about Create T3 App, the libraries it uses, and how
-								to deploy it.
-							</div>
-						</Link>
-					</div>
-					<div className={styles.showcaseContainer}>
-						<p className={styles.showcaseText}>
-							{hello ? hello.greeting : "Loading tRPC query..."}
-						</p>
-					</div>
-
-					<LatestPost />
-				</div>
-			</main>
-		</HydrateClient>
+		<Stack align="center" bg="gray.0" h="100svh" justify="center" w="100svw">
+			<Card padding="xl" radius="md" shadow="sm" withBorder>
+				<form onSubmit={form.onSubmit(handleLogin)}>
+					<Stack gap="sm" w="100%">
+						<Group>
+							<IconBowlSpoon />
+							<Title c="orange" order={3}>
+								Rice Box Hero
+							</Title>
+						</Group>
+						<TextInput
+							key={form.key("username")}
+							label="Username"
+							withAsterisk
+							{...form.getInputProps("username")}
+						/>
+						<PasswordInput
+							key={form.key("password")}
+							label="Password"
+							withAsterisk
+							{...form.getInputProps("password")}
+						/>
+						<Button type="submit">Login</Button>
+					</Stack>
+				</form>
+			</Card>
+		</Stack>
 	);
 }
