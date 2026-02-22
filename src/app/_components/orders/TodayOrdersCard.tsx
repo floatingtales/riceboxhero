@@ -121,7 +121,7 @@ export default function TodayOrdersCard() {
 												</Text>
 												<ActionIcon
 													onClick={() => {
-														console.log("edit");
+														handleEdit(order.id);
 													}}
 													size="sm"
 													variant="light"

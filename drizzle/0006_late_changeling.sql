@@ -1,1 +1,0 @@
-ALTER TABLE "riceboxhero_order_item" RENAME COLUMN "amout" TO "amount";

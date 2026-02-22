@@ -1,7 +1,8 @@
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 import z from "zod";
 import { order, orderItem } from "@/server/db/schema";
-import { STATUS_CONST } from "@/utils/consts";
+import { ORDER_STATUS_CONST, STATUS_CONST } from "@/utils/consts";
 import {
 	createOrderNumber,
 	createOrderNumberPrefix,
@@ -266,6 +267,129 @@ export const orderRouter = createTRPCRouter({
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to fetch order",
+				});
+			}
+		}),
+
+	updateOrderStatus: authedProcedure
+		.input(
+			z.object({
+				id: z.string().uuid(),
+				orderStatus: z.enum(ORDER_STATUS_CONST),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const { id, orderStatus } = input;
+			console.log(orderStatus);
+			try {
+				await ctx.db.update(order).set({ orderStatus }).where(eq(order.id, id));
+				return {
+					status: STATUS_CONST.ALERT,
+					message: "Order status updated successfully",
+				};
+			} catch (_e) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to update order status",
+				});
+			}
+		}),
+
+	updatePendingOrder: authedProcedure
+		.input(
+			z.object({
+				id: z.string().uuid(),
+				customerId: z.string().uuid(),
+				orderItems: z.array(
+					z.object({
+						menuId: z.string().uuid(),
+						amount: z.number().int().positive(),
+						grossPrice: z.number().positive(),
+						discount: z.number().nonnegative(),
+						discountRate: z.number().nonnegative(),
+						totalPrice: z.number().positive(),
+					}),
+				),
+				orderValues: z.object({
+					subtotal: z.number().positive(),
+					discount: z.number().nonnegative(),
+					discountRate: z.number().nonnegative(),
+					serviceCharge: z.number().nonnegative(),
+					serviceChargeRate: z.number().nonnegative(),
+					tax: z.number().nonnegative(),
+					taxRate: z.number().nonnegative(),
+					adjustment: z.number().nonnegative(),
+					total: z.number().positive(),
+				}),
+				orderNote: z.string().optional(),
+				orderStatus: z.enum(["paid", "voided"]).optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const {
+				id,
+				customerId,
+				orderItems,
+				orderValues,
+				orderNote,
+				orderStatus,
+			} = input;
+			const {
+				subtotal,
+				discount,
+				discountRate,
+				serviceCharge,
+				serviceChargeRate,
+				tax,
+				taxRate,
+				adjustment,
+				total,
+			} = orderValues;
+
+			try {
+				await ctx.db.transaction(async (tx) => {
+					// Delete existing items and replace with new
+					await tx.delete(orderItem).where(eq(orderItem.orderId, id));
+
+					await tx.insert(orderItem).values(
+						orderItems.map((item) => ({
+							orderId: id,
+							menuId: item.menuId,
+							amount: item.amount,
+							grossPrice: item.grossPrice,
+							discount: item.discount,
+							discountRate: item.discountRate,
+							totalPrice: item.totalPrice,
+						})),
+					);
+
+					await tx
+						.update(order)
+						.set({
+							customerId,
+							subtotal,
+							discount,
+							discountRate,
+							serviceCharge,
+							serviceChargeRate,
+							tax,
+							taxRate,
+							adjustment,
+							total,
+							orderNote: orderNote ?? null,
+							...(orderStatus ? { orderStatus } : {}),
+						})
+						.where(eq(order.id, id));
+				});
+
+				return {
+					status: STATUS_CONST.ALERT,
+					message: "Order updated successfully",
+				};
+			} catch (_e) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to update order",
 				});
 			}
 		}),

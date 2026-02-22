@@ -1,1 +1,0 @@
-ALTER TABLE "riceboxhero_order" ADD COLUMN "total" numeric(15, 2);

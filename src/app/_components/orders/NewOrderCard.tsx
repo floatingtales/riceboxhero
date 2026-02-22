@@ -26,14 +26,16 @@ import {
 	IconUserDollar,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { useActiveCustomers } from "@/hooks/useActiveCustomers";
+import { useActiveMenus } from "@/hooks/useActiveMenus";
 import { api } from "@/trpc/react";
 import AddCustomerModal from "../customer/AddCustomerModal";
 
 export default function NewOrderCard() {
 	const utils = api.useUtils();
 
-	const customersQuery = api.customer.getActive.useQuery();
-	const menusQuery = api.menu.getActive.useQuery();
+	const customersQuery = useActiveCustomers();
+	const menusQuery = useActiveMenus();
 	const addOrderMutation = api.order.addOrder.useMutation({
 		onSuccess: () => {
 			utils.order.dayOverview.invalidate();
@@ -252,8 +254,8 @@ export default function NewOrderCard() {
 	return (
 		<>
 			<Card flex={2} h="100%" p="md" withBorder>
-				<ScrollArea h="75svh">
-					<Stack gap="md" h="100%" w="100%">
+				<ScrollArea h="75svh" offsetScrollbars>
+					<Stack gap="md" h="100%" w="98%">
 						<Stack gap="0">
 							<Text fw="bold" size="xl">
 								New Order
