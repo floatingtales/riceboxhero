@@ -18,3 +18,10 @@ export const COOKIE_CONST = {
 } as const;
 
 export const MENU_TYPE_CONST = ["rice_box", "meat_only"] as const;
+
+export const ORDER_STATUS_CONST = [
+	"pending",
+	"paid",
+	"completed",
+	"voided",
+] as const;

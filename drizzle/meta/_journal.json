@@ -50,6 +50,13 @@
       "when": 1771337371181,
       "tag": "0006_late_changeling",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771604173358,
+      "tag": "0007_square_killmonger",
+      "breakpoints": true
     }
   ]
 }

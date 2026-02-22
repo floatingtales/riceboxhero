@@ -18,6 +18,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import {
 	IconChefHat,
+	IconNotes,
 	IconPlus,
 	IconToolsKitchen3,
 	IconTrash,
@@ -29,8 +30,17 @@ import { api } from "@/trpc/react";
 import AddCustomerModal from "../customer/AddCustomerModal";
 
 export default function NewOrderCard() {
+	const utils = api.useUtils();
+
 	const customersQuery = api.customer.getActive.useQuery();
 	const menusQuery = api.menu.getActive.useQuery();
+	const addOrderMutation = api.order.addOrder.useMutation({
+		onSuccess: () => {
+			utils.order.dayOverview.invalidate();
+			utils.order.dayOrders.invalidate();
+			resetInputs();
+		},
+	});
 
 	const [opened, { open, close }] = useDisclosure();
 
@@ -86,6 +96,8 @@ export default function NewOrderCard() {
 		serviceCharge: 0,
 		tax: 11,
 	});
+
+	const [orderNotes, setOrderNotes] = useState<string>("");
 
 	const [orderValues, setOrderValues] = useState<{
 		subtotal: number;
@@ -154,6 +166,31 @@ export default function NewOrderCard() {
 	const handleAddToOrder = () => {
 		if (toBeAddedMenu.menuId === "") return;
 		setOrderList((prev) => [...prev, toBeAddedMenu]);
+	};
+
+	const handleRemoveFromOrder = (index: number) => {
+		setOrderList((prev) => prev.filter((_, i) => i !== index));
+	};
+
+	const handleSubmitOrder = () => {
+		if (orderList.length === 0 || customerId === null) return;
+		addOrderMutation.mutate({
+			customerId,
+			orderItems: orderList,
+			orderValues,
+			orderNote: orderNotes || undefined,
+		});
+	};
+
+	const resetInputs = () => {
+		setCustomerId("");
+		setSelectedMenu({
+			id: "",
+			amount: 1,
+			discount: 0,
+			discountType: "value",
+			standardPrice: 0,
+		});
 		setToBeAddedMenu({
 			menuId: "",
 			amount: 0,
@@ -162,17 +199,24 @@ export default function NewOrderCard() {
 			discountRate: 0,
 			totalPrice: 0,
 		});
-		setSelectedMenu({
-			id: "",
-			amount: 1,
+		setOrderList([]);
+		setOrderAdjustments({
 			discount: 0,
-			discountType: "value",
-			standardPrice: 0,
+			serviceCharge: 0,
+			tax: 11,
 		});
-	};
-
-	const handleRemoveFromOrder = (index: number) => {
-		setOrderList((prev) => prev.filter((_, i) => i !== index));
+		setOrderNotes("");
+		setOrderValues({
+			subtotal: 0,
+			discount: 0,
+			discountRate: 0,
+			serviceCharge: 0,
+			serviceChargeRate: 0,
+			tax: 0,
+			taxRate: 0,
+			adjustment: 0,
+			total: 0,
+		});
 	};
 
 	if (customersQuery.isError) {
@@ -446,6 +490,20 @@ export default function NewOrderCard() {
 						<Divider />
 						<Stack gap="xs">
 							<Group gap="xs">
+								<IconNotes color="var(--mantine-color-orange-6)" />
+								<Text fw="bold" size="sm">
+									Order Notes
+								</Text>
+							</Group>
+							<TextInput
+								onChange={(e) => setOrderNotes(e.target.value)}
+								placeholder="Notes"
+								value={orderNotes}
+							/>
+						</Stack>
+						<Divider />
+						<Stack gap="xs">
+							<Group gap="xs">
 								<IconUserDollar color="var(--mantine-color-orange-6)" />
 								<Text fw="bold" size="sm">
 									Order Summary
@@ -578,7 +636,13 @@ export default function NewOrderCard() {
 							</Group>
 						</Stack>
 						<Divider />
-						<Button size="xl">Submit order</Button>
+						<Button
+							disabled={orderList.length === 0 || customerId === null}
+							onClick={handleSubmitOrder}
+							size="xl"
+						>
+							Submit order
+						</Button>
 					</Stack>
 				</ScrollArea>
 			</Card>

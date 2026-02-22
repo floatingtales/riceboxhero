@@ -19,7 +19,7 @@ export const order = createTable(
 			.notNull()
 			.references(() => admin.id),
 		orderNumber: d.text().notNull(),
-		orderStatus: orderStatusEnum().notNull(),
+		orderStatus: orderStatusEnum().notNull().default("pending"),
 		orderedAt: d.timestamp({ withTimezone: true }).notNull().defaultNow(),
 		subtotal: d.numeric({ precision: 15, scale: 2, mode: "number" }).notNull(),
 		discount: d
