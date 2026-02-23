@@ -101,11 +101,13 @@ export const orderRouter = createTRPCRouter({
 
       try {
         const orders = ctx.db.query.order.findMany({
-          where: (order, { notLike, and, eq }) =>
+          where: (order, { notLike, and, eq, or }) =>
             and(
               notLike(order.orderNumber, `${prefix}%`),
-              eq(order.orderStatus, "pending"),
-              eq(order.orderStatus, "paid"),
+              or(
+                eq(order.orderStatus, "pending"),
+                eq(order.orderStatus, "paid"),
+              ),
             ),
           columns: {
             id: true,
