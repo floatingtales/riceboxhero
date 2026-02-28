@@ -76,7 +76,7 @@ export default function UnresolvedOrdersCard() {
 	}
 
 	if (unresolvedOrdersQuery.data?.length === 0) {
-		return <></>;
+		return null;
 	}
 
 	const { data: orders } = unresolvedOrdersQuery;

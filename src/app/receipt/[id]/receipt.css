@@ -1,0 +1,160 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap");
+
+.receipt-page {
+	font-family: "Roboto Mono", monospace;
+	max-width: 320px;
+	margin: 0 auto;
+	padding: 24px 16px;
+	color: #000;
+	background: #fff;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.receipt-page .print-btn {
+	display: block;
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 16px;
+	background: #f97316;
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	font-family: "Roboto Mono", monospace;
+	font-size: 14px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.receipt-page .print-btn:hover {
+	background: #ea580c;
+}
+
+.receipt-page .header {
+	text-align: center;
+	margin-bottom: 16px;
+}
+
+.receipt-page .header h1 {
+	font-size: 18px;
+	font-weight: 700;
+	margin: 0;
+}
+
+.receipt-page .header p {
+	margin: 2px 0;
+	color: #666;
+	font-size: 11px;
+}
+
+.receipt-page .divider {
+	border: none;
+	border-top: 1px dashed #999;
+	margin: 12px 0;
+}
+
+.receipt-page .info-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.receipt-page .info-row .label {
+	color: #666;
+	flex-shrink: 0;
+}
+
+.receipt-page .info-row .value {
+	text-align: right;
+	word-break: break-word;
+}
+
+.receipt-page .section-title {
+	font-weight: 700;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #666;
+	margin: 4px 0;
+}
+
+.receipt-page .item-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	padding: 4px 0;
+}
+
+.receipt-page .item-row .item-name {
+	flex: 1;
+}
+
+.receipt-page .item-row .item-qty {
+	color: #666;
+	margin-right: 8px;
+	flex-shrink: 0;
+}
+
+.receipt-page .item-row .item-price {
+	flex-shrink: 0;
+	text-align: right;
+}
+
+.receipt-page .item-discount {
+	font-size: 11px;
+	color: #999;
+	padding-left: 16px;
+}
+
+.receipt-page .total-section .total-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 2px 0;
+}
+
+.receipt-page .total-section .total-row.grand {
+	font-weight: 700;
+	font-size: 16px;
+	padding: 8px 0 4px;
+}
+
+.receipt-page .footer {
+	text-align: center;
+	margin-top: 16px;
+	color: #666;
+	font-size: 11px;
+}
+
+.receipt-page .footer p {
+	margin: 2px 0;
+}
+
+.receipt-page .footer .thank-you {
+	font-size: 14px;
+	font-weight: 700;
+	color: #000;
+	margin-top: 8px;
+}
+
+@media print {
+	@page {
+		margin: 4mm;
+		size: 80mm auto;
+	}
+
+	html,
+	body {
+		width: 80mm;
+		margin: 0;
+		padding: 0;
+	}
+
+	.receipt-page {
+		padding: 0;
+		max-width: none;
+	}
+
+	.receipt-page .print-btn {
+		display: none;
+	}
+}

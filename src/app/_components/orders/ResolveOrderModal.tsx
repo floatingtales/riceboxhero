@@ -17,15 +17,22 @@ import {
 	IconPrinter,
 	IconUser,
 	IconUserDollar,
+	IconWallet,
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { useActiveMenus } from "@/hooks/useActiveMenus";
 import { api } from "@/trpc/react";
+import { PAYMENT_METHOD_CONST } from "@/utils/consts";
 
 const STATUS_OPTIONS = [
 	{ value: "completed", label: "Completed" },
 	{ value: "voided", label: "Voided" },
 ];
+
+const PAYMENT_METHOD_OPTIONS = PAYMENT_METHOD_CONST.map((method) => ({
+	label: method.charAt(0).toUpperCase() + method.slice(1),
+	value: method,
+}));
 
 export default function ResolveOrderModal({
 	opened,
@@ -67,12 +74,16 @@ export default function ResolveOrderModal({
 	});
 
 	const [nextStatus, setNextStatus] = useState<string | null>(null);
+	const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
 
 	const handleSave = () => {
 		if (!nextStatus) return;
 		updateStatusMutation.mutate({
 			id,
 			orderStatus: nextStatus as "completed" | "voided",
+			paymentMethod: paymentMethod as
+				| (typeof PAYMENT_METHOD_CONST)[number]
+				| undefined,
 		});
 	};
 
@@ -93,6 +104,9 @@ export default function ResolveOrderModal({
 	}
 
 	const { data: order } = orderQuery;
+	const isPending = order.orderStatus === "pending";
+	const needsPaymentMethod =
+		isPending && nextStatus === "completed" && !paymentMethod;
 
 	return (
 		<Modal onClose={onClose} opened={opened} size="lg" title="Resolve Order">
@@ -106,9 +120,53 @@ export default function ResolveOrderModal({
 					placeholder={`Current: ${order.orderStatus}`}
 					value={nextStatus}
 				/>
+				{isPending && (
+					<>
+						<Divider />
+						<Group gap="xs">
+							<IconWallet color="var(--mantine-color-orange-6)" />
+							<Text fw="bold" size="sm">
+								Payment Method
+							</Text>
+						</Group>
+						<Select
+							allowDeselect
+							clearable
+							data={PAYMENT_METHOD_OPTIONS}
+							description={
+								nextStatus === "completed"
+									? "Required when completing an order"
+									: undefined
+							}
+							error={
+								needsPaymentMethod ? "Payment method is required" : undefined
+							}
+							onChange={(value) => setPaymentMethod(value)}
+							placeholder={
+								order.paymentMethod
+									? `Current: ${order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1)}`
+									: "Select payment method"
+							}
+							value={paymentMethod}
+						/>
+					</>
+				)}
+				{!isPending && order.paymentMethod && (
+					<Group justify="space-between">
+						<Text c="dimmed" size="xs">
+							Payment Method
+						</Text>
+						<Badge variant="light">
+							{order.paymentMethod.charAt(0).toUpperCase() +
+								order.paymentMethod.slice(1)}
+						</Badge>
+					</Group>
+				)}
 				<Divider />
 				<Button
-					disabled={!nextStatus || updateStatusMutation.isPending}
+					disabled={
+						!nextStatus || updateStatusMutation.isPending || needsPaymentMethod
+					}
 					loading={updateStatusMutation.isPending}
 					onClick={handleSave}
 					size="md"
@@ -188,7 +246,7 @@ export default function ResolveOrderModal({
 				<Group justify="flex-end">
 					<Button
 						leftSection={<IconPrinter />}
-						onClick={() => console.log("redirect to print receipt")}
+						onClick={() => window.open(`/receipt/${id}`, "_blank")}
 						variant="subtle"
 					>
 						Print Receipt
