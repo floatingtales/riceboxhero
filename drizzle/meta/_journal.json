@@ -8,6 +8,13 @@
       "when": 1771728115025,
       "tag": "0000_medical_nehzno",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772280829327,
+      "tag": "0001_add-payment-method",
+      "breakpoints": true
     }
   ]
 }

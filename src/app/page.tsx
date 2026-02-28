@@ -19,7 +19,7 @@ import { PATH_CONST, STATUS_CONST } from "@/utils/consts";
 import { checkSession, login } from "./_actions/session";
 
 export default function Home() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const router = useRouter();
 
@@ -49,23 +49,27 @@ export default function Home() {
     const res = await login({ ip, username, password });
     if (res.status === STATUS_CONST.REDIRECT) {
       router.push(res.href);
-    }
-    if (res.status === STATUS_CONST.ALERT) {
+    } else if (res.status === STATUS_CONST.ALERT) {
       notifications.show({
         message: res.message,
       });
+      setLoading(false);
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    setLoading(true);
-    checkSession().then((res) => {
+    const checkSessionAsync = async () => {
+      setLoading(true);
+      const res = await checkSession();
       if (res) {
         router.push(PATH_CONST.DASHBOARD);
+      } else {
+        setLoading(false);
       }
-    });
-    setLoading(false);
+    };
+    checkSessionAsync();
   }, [router]);
 
   if (loading)
