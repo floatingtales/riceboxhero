@@ -138,6 +138,7 @@
 
 @media print {
 	@page {
+		/* biome-ignore lint/suspicious/noShorthandPropertyOverrides: Need to do this for receipt */
 		margin: 4mm;
 		size: 80mm auto;
 	}

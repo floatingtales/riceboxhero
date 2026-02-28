@@ -4,7 +4,6 @@ import {
 	ActionIcon,
 	Badge,
 	Card,
-	Divider,
 	Group,
 	Loader,
 	ScrollArea,
