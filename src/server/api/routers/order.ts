@@ -1,13 +1,32 @@
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import dayjs from "dayjs";
+import { eq, inArray, sql } from "drizzle-orm";
 import z from "zod";
-import { order, orderItem } from "@/server/db/schema";
+import { customer, menu, order, orderItem } from "@/server/db/schema";
 import { ORDER_STATUS_CONST, STATUS_CONST } from "@/utils/consts";
 import {
 	createOrderNumber,
 	createOrderNumberPrefix,
 } from "@/utils/helpers/createOrderNumber";
 import { authedProcedure, createTRPCRouter } from "../trpc";
+
+const PERIOD_CONST = ["day", "week", "month"] as const;
+
+function getOrderPrefixesForPeriod(period: (typeof PERIOD_CONST)[number]) {
+	const today = dayjs();
+	const prefixes: string[] = [];
+
+	let days = 1;
+	if (period === "week") days = 7;
+	if (period === "month") days = today.date(); // from 1st of month to today
+
+	for (let i = 0; i < days; i++) {
+		const date = today.subtract(i, "day").toDate();
+		prefixes.push(createOrderNumberPrefix(date));
+	}
+
+	return prefixes;
+}
 
 export const orderRouter = createTRPCRouter({
 	dashboardOverview: authedProcedure.query(async ({ ctx }) => {
@@ -427,6 +446,141 @@ export const orderRouter = createTRPCRouter({
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to update order",
+				});
+			}
+		}),
+	periodOverview: authedProcedure
+		.input(z.object({ period: z.enum(PERIOD_CONST) }))
+		.query(async ({ input, ctx }) => {
+			const prefixes = getOrderPrefixesForPeriod(input.period);
+
+			try {
+				const orders = await ctx.db.query.order.findMany({
+					where: (order, { or, like }) =>
+						or(...prefixes.map((p) => like(order.orderNumber, `${p}%`))),
+					columns: { id: true, total: true },
+				});
+
+				const total = orders.reduce((acc, o) => acc + o.total, 0);
+				const orderCount = orders.length;
+				const averageOrder = orderCount > 0 ? total / orderCount : 0;
+
+				return {
+					total: `Rp. ${total.toLocaleString("id-ID")}`,
+					count: orderCount,
+					averageOrder: `Rp. ${Math.round(averageOrder).toLocaleString("id-ID")}`,
+				};
+			} catch (_e) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to fetch period overview",
+				});
+			}
+		}),
+	recentOrders: authedProcedure.query(async ({ ctx }) => {
+		const todayPrefix = createOrderNumberPrefix(new Date());
+
+		try {
+			const orders = await ctx.db.query.order.findMany({
+				where: (order, { like }) => like(order.orderNumber, `${todayPrefix}%`),
+				columns: {
+					id: true,
+					orderNumber: true,
+					orderStatus: true,
+					total: true,
+					orderedAt: true,
+				},
+				with: {
+					customer: {
+						columns: { name: true },
+					},
+				},
+				orderBy: (order, { desc }) => [desc(order.orderedAt)],
+				limit: 10,
+			});
+
+			return orders;
+		} catch (_e) {
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Failed to fetch recent orders",
+			});
+		}
+	}),
+	topSellingItems: authedProcedure
+		.input(z.object({ period: z.enum(PERIOD_CONST) }))
+		.query(async ({ input, ctx }) => {
+			const prefixes = getOrderPrefixesForPeriod(input.period);
+
+			try {
+				// First get all order IDs matching the period
+				const periodOrders = await ctx.db.query.order.findMany({
+					where: (order, { or, like }) =>
+						or(...prefixes.map((p) => like(order.orderNumber, `${p}%`))),
+					columns: { id: true },
+				});
+
+				const orderIds = periodOrders.map((o) => o.id);
+
+				if (orderIds.length === 0) {
+					return [];
+				}
+
+				// Aggregate order items for those orders
+				const results = await ctx.db
+					.select({
+						menuId: orderItem.menuId,
+						menuName: menu.name,
+						totalSold: sql<number>`COALESCE(SUM(${orderItem.amount}), 0)::int`,
+					})
+					.from(orderItem)
+					.innerJoin(menu, eq(orderItem.menuId, menu.id))
+					.where(inArray(orderItem.orderId, orderIds))
+					.groupBy(orderItem.menuId, menu.name)
+					.orderBy(sql`SUM(${orderItem.amount}) DESC`)
+					.limit(5);
+
+				return results;
+			} catch (_e) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to fetch top selling items",
+				});
+			}
+		}),
+	topCustomers: authedProcedure
+		.input(z.object({ period: z.enum(PERIOD_CONST) }))
+		.query(async ({ input, ctx }) => {
+			const prefixes = getOrderPrefixesForPeriod(input.period);
+
+			try {
+				const results = await ctx.db
+					.select({
+						customerId: order.customerId,
+						customerName: customer.name,
+						orderCount: sql<number>`COUNT(${order.id})::int`,
+						totalSpent: sql<number>`COALESCE(SUM(${order.total}), 0)::numeric(15,2)`,
+					})
+					.from(order)
+					.innerJoin(customer, eq(order.customerId, customer.id))
+					.where(
+						sql`(${sql.join(
+							prefixes.map((p) => sql`${order.orderNumber} LIKE ${`${p}%`}`),
+							sql` OR `,
+						)})`,
+					)
+					.groupBy(order.customerId, customer.name)
+					.orderBy(sql`SUM(${order.total}) DESC`)
+					.limit(5);
+
+				return results.map((r) => ({
+					...r,
+					totalSpent: Number(r.totalSpent),
+				}));
+			} catch (_e) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to fetch top customers",
 				});
 			}
 		}),

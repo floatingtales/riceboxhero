@@ -39,7 +39,7 @@ export default function NewOrderCard() {
 	const addOrderMutation = api.order.addOrder.useMutation({
 		onSuccess: () => {
 			utils.order.dayOverview.invalidate();
-			utils.order.dayOrders.invalidate();
+			utils.order.orders.invalidate();
 			resetInputs();
 		},
 	});
