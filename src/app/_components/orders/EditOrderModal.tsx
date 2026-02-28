@@ -70,7 +70,7 @@ export default function EditOrderModal({
 
 	const updateStatusMutation = api.order.updateOrderStatus.useMutation({
 		onSuccess: () => {
-			utils.order.dayOrders.invalidate();
+			utils.order.orders.invalidate();
 			utils.order.dayOverview.invalidate();
 			utils.order.seeOrderDetail.invalidate({ id });
 			onClose();
@@ -91,7 +91,7 @@ export default function EditOrderModal({
 
 	const updatePendingMutation = api.order.updatePendingOrder.useMutation({
 		onSuccess: () => {
-			utils.order.dayOrders.invalidate();
+			utils.order.orders.invalidate();
 			utils.order.dayOverview.invalidate();
 			utils.order.seeOrderDetail.invalidate({ id });
 			onClose();
@@ -168,6 +168,11 @@ export default function EditOrderModal({
 
 		setCustomerId(data.customer.id);
 		setOrderNotes(data.orderNote ?? "");
+		setOrderAdjustments({
+			discount: data.discountRate ?? 0,
+			serviceCharge: data.serviceChargeRate ?? 0,
+			tax: data.taxRate ?? 0,
+		});
 		setOrderList(
 			data.orderItems.map((item) => ({
 				menuId: item.menuId,
