@@ -4,7 +4,7 @@ Ricebox Hero is a modern, lightweight Point of Sale (POS) and business managemen
 
 I built this to practice a little bit of small full-stack application. I've gotten my hands full with a lot of enterprise-level projects that I can't really share to the public. I also wanted to make a simple, yet modern and user-friendly interface for my friend's business.
 
-I'm not a designer, but I tried my best to make it look good, thanks to [magicpatterns](https://magicpatterns.co/).
+I'm not a designer, but I tried my best to make it look good, thanks to [magicpatterns](https://magicpatterns.com/).
 
 ## ✨ Features
 
