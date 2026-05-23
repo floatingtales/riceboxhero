@@ -1,5 +1,5 @@
-import { env } from "@/env";
 import * as jose from "jose";
+import { env } from "@/env";
 
 export const encodeIDtoJWT = async (id: string) => {
 	const jwt = await new jose.SignJWT({ id })

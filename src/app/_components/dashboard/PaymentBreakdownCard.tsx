@@ -34,7 +34,14 @@ export default function PaymentBreakdownCard({
 	isLoading,
 }: PaymentBreakdownCardProps) {
 	return (
-		<Card h="100%" padding="lg" radius="md" withBorder>
+		<Card
+			className="hover-lift"
+			h="100%"
+			padding="lg"
+			radius="md"
+			shadow="sm"
+			withBorder
+		>
 			<Stack gap="md">
 				<Group gap="xs">
 					<IconWallet color="var(--mantine-color-teal-6)" size={20} />

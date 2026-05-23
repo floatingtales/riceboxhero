@@ -17,7 +17,14 @@ export default function TopCustomersCard({
 	isLoading,
 }: TopCustomersCardProps) {
 	return (
-		<Card h="100%" padding="lg" radius="md" withBorder>
+		<Card
+			className="hover-lift"
+			h="100%"
+			padding="lg"
+			radius="md"
+			shadow="sm"
+			withBorder
+		>
 			<Stack gap="md">
 				<Group gap="xs">
 					<IconUsers color="var(--mantine-color-violet-6)" size={20} />

@@ -28,7 +28,14 @@ export default function TypeBreakdownCard({
 	isLoading,
 }: TypeBreakdownCardProps) {
 	return (
-		<Card h="100%" padding="lg" radius="md" withBorder>
+		<Card
+			className="hover-lift"
+			h="100%"
+			padding="lg"
+			radius="md"
+			shadow="sm"
+			withBorder
+		>
 			<Stack gap="md">
 				<Group gap="xs">
 					<IconToolsKitchen3 color="var(--mantine-color-orange-6)" size={20} />

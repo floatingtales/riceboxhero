@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
 	return (
 		<Stack bg="gray.0" flex={1} h="calc(100vh - 56px)" p="xl">
-			<ScrollArea offsetScrollbars w="100%" h="100%">
+			<ScrollArea h="100%" offsetScrollbars w="100%">
 				<Stack gap="lg" pb="100px">
 					{/* Header with period selector */}
 					<Group align="center" justify="space-between">

@@ -1,12 +1,20 @@
-import { Stack } from "@mantine/core";
+"use client";
+
+import { AppShell } from "@mantine/core";
 import type { ReactNode } from "react";
 import Navbar from "../_components/dashboard/Navbar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
-		<Stack gap="0" h="100svh" style={{ overflow: "hidden" }} w="100svw">
+		<AppShell navbar={{ width: 260, breakpoint: "sm" }} padding="0">
 			<Navbar />
-			{children}
-		</Stack>
+			<AppShell.Main
+				className="subtle-bg"
+				h="100svh"
+				style={{ overflowY: "hidden" }}
+			>
+				{children}
+			</AppShell.Main>
+		</AppShell>
 	);
 }

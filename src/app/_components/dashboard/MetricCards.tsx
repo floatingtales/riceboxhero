@@ -47,7 +47,14 @@ export default function MetricCards({
 	return (
 		<Group gap="md" grow>
 			{metrics.map((metric) => (
-				<Card key={metric.label} padding="lg" radius="md" withBorder>
+				<Card
+					className="hover-lift"
+					key={metric.label}
+					padding="lg"
+					radius="md"
+					shadow="sm"
+					withBorder
+				>
 					<Group gap="sm">
 						{metric.icon}
 						<Stack gap={2}>

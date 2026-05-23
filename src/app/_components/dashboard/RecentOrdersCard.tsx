@@ -24,7 +24,14 @@ export default function RecentOrdersCard({
 	isLoading,
 }: RecentOrdersCardProps) {
 	return (
-		<Card h="100%" padding="lg" radius="md" withBorder>
+		<Card
+			className="hover-lift"
+			h="100%"
+			padding="lg"
+			radius="md"
+			shadow="sm"
+			withBorder
+		>
 			<Stack gap="md">
 				<Group gap="xs">
 					<IconClock color="var(--mantine-color-orange-6)" size={20} />
